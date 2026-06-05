@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Booth Bingo</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background-color: #0b4b26; /* Dark green background */
+            /* Add your exported Canva leaf background here: */
+            /* background-image: url('your-leaves-background.png'); */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px; 
+            margin: 0; 
+            color: white;
+        }
+
+        .main-title {
+            font-size: 42px;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin: 10px 0 0 0;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .sub-title {
+            font-size: 26px;
+            color: #a4ce60; /* Light green */
+            /* Comic Sans is the closest standard web-safe font to the rounded style */
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; 
+            margin: 5px 0 20px 0;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .instructions { 
+            text-align: center; 
+            color: #e0e0e0; 
+            margin-bottom: 20px; 
+            max-width: 400px; 
+        }
+
+        #loading-message { 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #a4ce60; 
+            margin-top: 40px; 
+            text-align: center; 
+        }
+
+        /* The Olive Green Container */
+        #bingo-board { 
+            display: none; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 8px; 
+            background-color: #6a902b; 
+            padding: 12px;
+            width: 100%; 
+            max-width: 400px; 
+            box-sizing: border-box;
+        }
+
+        /* The White Squares */
+        .booth-square { 
+            background-color: white; 
+            border: none; 
+            border-radius: 0; /* Sharp corners */
+            aspect-ratio: 1 / 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            text-align: center; 
+            padding: 10px; 
+            font-weight: 700; 
+            font-size: 15px; 
+            color: #0a4721; /* Dark green text */
+            cursor: pointer; 
+            transition: transform 0.1s ease; 
+        }
+
+        .booth-square:active { 
+            transform: scale(0.95); 
+        }
+
+        /* CSS trick to draw the big green X for stamped squares */
+        .booth-square.stamped { 
+            background-color: white; 
+            color: #0a4721; 
+            pointer-events: none; 
+            background-image: 
+                linear-gradient(to top right, transparent calc(50% - 3px), #8bc34a calc(50% - 3px), #8bc34a calc(50% + 3px), transparent calc(50% + 3px)),
+                linear-gradient(to bottom right, transparent calc(50% - 3px), #8bc34a calc(50% - 3px), #8bc34a calc(50% + 3px), transparent calc(50% + 3px));
+        }
+
+        #win-section { 
+            display: none; 
+            margin-top: 30px; 
+            text-align: center; 
+            width: 100%; 
+            max-width: 400px; 
+        }
+
+        .action-btn { 
+            background-color: #a4ce60; 
+            color: #0b4b26; 
+            border: none; 
+            padding: 15px 20px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            width: 100%; 
+            margin-bottom: 10px; 
+        }
+
+        .action-btn:disabled { 
+            background-color: #555; 
+            color: #888;
+            cursor: not-allowed; 
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <h1 class="main-title">SCAVENGER HUNT</h1>
+    <h2 class="sub-title">PlantCon Chicago 2026</h2>
+    <p class="instructions">Tap a booth and hand your phone to the exhibitor for their secret PIN to collect your stamp!</p>
+
+    <div id="loading-message">Loading your unique board...</div>
+
+    <div id="bingo-board"></div>
+
+    <div id="win-section">
+        <h2>🎉 BINGO! 🎉</h2>
+        <p>You've collected all signatures!</p>
+        <button id="submit-btn" class="action-btn" onclick="submitToDrawing()">Enter the Drawing</button>
+    </div>
+
+    <script>
+        // 1. YOUR GOOGLE WEB APP URL
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzHcgCIygs6YAlqzzmwyTbksgNASnGh5PYP81gahmQFwZ0Hw1B36qyTa7gCWgIJS80oHw/exec";
+
+        let masterExhibitorList = [];
+        let boardData = [];
+        
+        const boardElement = document.getElementById('bingo-board');
+        const winSection = document.getElementById('win-section');
+        const loadingMessage = document.getElementById('loading-message');
+
+        // 2. FETCH DATA FROM GOOGLE SHEETS
+        async function initializeApp() {
+            // First, check if they already have an active board saved on their phone
+            const savedData = localStorage.getItem('bingoBoardState');
+            
+            if (savedData) {
+                // If they have a saved board, load it immediately without fetching the master list
+                boardData = JSON.parse(savedData);
+                showBoard();
+                return;
+            }
+
+            // If no saved board exists, fetch the master list from Google Sheets
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+
+                if (!response.ok) throw new Error("Network response was not ok");
+                
+                masterExhibitorList = await response.json();
+
+                if (masterExhibitorList.error) throw new Error(masterExhibitorList.error);
+                if (masterExhibitorList.length < 8) throw new Error("Not enough exhibitors in the spreadsheet.");
+
+                // Generate a new board with the fetched data
+                boardData = generateRandomBoard();
+                saveBoardData();
+                showBoard();
+
+            } catch (error) {
+                console.error('Error fetching exhibitors:', error);
+                loadingMessage.innerText = "Error loading data. Please check your connection and refresh.";
+                loadingMessage.style.color = "red";
+            }
+        }
+
+        // Helper function to transition from loading to showing the grid
+        function showBoard() {
+            loadingMessage.style.display = 'none';
+            boardElement.style.display = 'grid';
+            renderBoard();
+        }
+
+        function generateRandomBoard() {
+            const shuffled = [...masterExhibitorList].sort(() => 0.5 - Math.random());
+            const selected8 = shuffled.slice(0, 8);
+            
+            const newBoard = selected8.map(vendor => ({
+                name: vendor.name,
+                pin: vendor.pin,
+                isStamped: false
+            }));
+
+            // Inject the FREE SPACE exactly in the middle
+            newBoard.splice(4, 0, { name: "FREE SPACE", pin: null, isStamped: true });
+            return newBoard;
+        }
+
+        function saveBoardData() {
+            localStorage.setItem('bingoBoardState', JSON.stringify(boardData));
+        }
+
+        function renderBoard() {
+            boardElement.innerHTML = ''; 
+            boardData.forEach((square, index) => {
+                const div = document.createElement('div');
+                div.className = 'booth-square';
+                div.innerText = square.name;
+                
+                if (square.isStamped) { div.classList.add('stamped'); } 
+                else { div.onclick = () => handleSquareClick(index); }
+                
+                boardElement.appendChild(div);
+            });
+            checkWinCondition();
+        }
+
+        function handleSquareClick(index) {
+            const square = boardData[index];
+            let enteredPin = prompt(`Hand to Exhibitor:\nPlease enter the 4-digit PIN for ${square.name}`);
+            
+            if (enteredPin === square.pin) {
+                boardData[index].isStamped = true;
+                saveBoardData(); 
+                renderBoard(); 
+            } else if (enteredPin !== null) {
+                alert("Incorrect PIN. Please try again.");
+            }
+        }
+
+        function checkWinCondition() {
+            const allStamped = boardData.every(square => square.isStamped === true);
+            winSection.style.display = allStamped ? 'block' : 'none';
+        }
+
+        async function submitToDrawing() {
+            let email = prompt("Enter your email address to join the drawing:");
+            if(!email) return; 
+
+            const btn = document.getElementById('submit-btn');
+            const originalText = btn.innerText;
+            
+            btn.innerText = "Submitting...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ email: email })
+                });
+
+                if (response.ok) {
+                    alert(`Success! ${email} has been entered into the drawing.`);
+                    localStorage.removeItem('bingoBoardState');
+                    location.reload(); 
+                } else {
+                    throw new Error("Network response was not ok");
+                }
+            } catch (error) {
+                alert("There was an error connecting to the server. Please check your connection and try again.");
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Fire the initialization immediately when the page opens
+        initializeApp();
+    </script>
+</body>
+</html>
