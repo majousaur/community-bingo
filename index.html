@@ -173,7 +173,7 @@
 
         function handleSquareClick(index) {
             const square = boardData[index];
-            let enteredPin = prompt(`Enter the secret password for ${square.name}`:);
+            let enteredPin = prompt(`Enter the secret password for ${square.name}:`);
             
             if (enteredPin === square.pin) {
                 boardData[index].isStamped = true;
