@@ -173,14 +173,14 @@
 
         function handleSquareClick(index) {
             const square = boardData[index];
-            let enteredPin = prompt(`Hand to Exhibitor:\nEnter the secret password for ${square.name}`);
+            let enteredPin = prompt(`Enter the secret password for ${square.name}`:);
             
             if (enteredPin === square.pin) {
                 boardData[index].isStamped = true;
                 saveBoardData(); 
                 renderBoard(); 
             } else if (enteredPin !== null) {
-                alert("Incorrect PIN. Please try again.");
+                alert("Incorrect password. Please try again.");
             }
         }
 
