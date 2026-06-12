@@ -85,30 +85,41 @@
             box-sizing: border-box; 
         }
         
-        /* The White Squares */
+        /* Updated Booth Square to stack vertically */
         .booth-square { 
             background-color: white; 
             border: none; 
             border-radius: 0; 
             aspect-ratio: 1 / 1; 
             display: flex; 
+            flex-direction: column; /* Stacks the booth number and name */
             align-items: center; 
             justify-content: center; 
             text-align: center; 
-            /* Dropped padding to 4px to maximize room for the 18px font */
-            padding: 6px; 
-            font-weight: 700; 
-            font-size: 16px; /* Your requested font size */
-            line-height: 1.1; /* Tucks multi-line names closer together */
+            padding: 4px; 
             color: #0a4721; 
             cursor: pointer; 
             transition: transform 0.1s ease; 
-            font-family: 'More Sugar', cursive, sans-serif;
             box-sizing: border-box;
-            /* These properties force long words to wrap instead of breaking the box */
             overflow-wrap: break-word;
             word-wrap: break-word;
             hyphens: auto;
+        }
+
+        /* Specific text styles inside the square */
+        .booth-number-text {
+            font-family: 'Nexa Heavy', sans-serif;
+            font-size: 13px;
+            color: #6a902b; 
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .booth-name-text {
+            font-family: 'More Sugar', cursive, sans-serif;
+            font-size: 18px;
+            line-height: 1.1;
+            font-weight: 700;
         }
 
         .booth-square:active { transform: scale(0.95); }
@@ -365,12 +376,14 @@ In 2020, we organized local meet-ups within our Facebook group to trade and sell
             const selected8 = shuffled.slice(0, 8);
             
             const newBoard = selected8.map(vendor => ({
+                boothNumber: vendor.boothNumber, // Grabs the new booth number
                 name: vendor.name,
-                password: vendor.pin, // Your Google Script still passes this as 'pin', mapping it to 'password' here
+                password: vendor.pin, 
                 isStamped: false
             }));
 
-            newBoard.splice(4, 0, { name: "LOCAL COMMUNITY BOOTH", password: null, isStamped: true });
+            // Added an empty string for the booth number on the Free Space
+            newBoard.splice(4, 0, { boothNumber: "", name: "LOCAL COMMUNITY BOOTH", password: null, isStamped: true });
             return newBoard;
         }
 
@@ -381,7 +394,20 @@ In 2020, we organized local meet-ups within our Facebook group to trade and sell
             boardData.forEach((square, index) => {
                 const div = document.createElement('div');
                 div.className = 'booth-square';
-                div.innerText = square.name;
+                
+                // Only create and add the Booth Number element if one exists (Free Space won't have one)
+                if (square.boothNumber) {
+                    const boothSpan = document.createElement('div');
+                    boothSpan.className = 'booth-number-text';
+                    boothSpan.innerText = `Booth ${square.boothNumber}`;
+                    div.appendChild(boothSpan);
+                }
+
+                // Add the Name element below it
+                const nameSpan = document.createElement('div');
+                nameSpan.className = 'booth-name-text';
+                nameSpan.innerText = square.name;
+                div.appendChild(nameSpan);
                 
                 if (square.isStamped) { div.classList.add('stamped'); } 
                 else { div.onclick = () => openPasswordModal(index); }
