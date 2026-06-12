@@ -20,7 +20,7 @@
         }
 
         .main-title { font-size: 42px; font-weight: 900; text-transform: uppercase; margin: 10px 0 0 0; text-align: center; line-height: 1; }
-        .sub-title { font-size: 26px; color: #a4ce60; font-family: 'Inter', 'Chalkboard SE', sans-serif; margin: 5px 0 20px 0; text-align: center; letter-spacing: 1px; }
+        .sub-title { font-size: 26px; color: #a4ce60; font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; margin: 5px 0 20px 0; text-align: center; letter-spacing: 1px; }
         .instructions { text-align: center; color: #e0e0e0; margin-bottom: 20px; max-width: 400px; }
         
         #loading-message { font-size: 18px; font-weight: bold; color: #a4ce60; margin-top: 40px; text-align: center; }
@@ -46,8 +46,8 @@
         .map-btn { background-color: white; color: #0b4b26; margin-top: 20px; }
         .reset-btn { background-color: transparent; border: 1px solid #a4ce60; color: #a4ce60; margin-top: 10px; }
 
-        /* NEW: Submission Form Modal Styles */
-        #submission-modal {
+        /* Modal Styles */
+        .custom-modal {
             display: none; 
             position: fixed; 
             z-index: 1000; 
@@ -55,7 +55,7 @@
             top: 0; 
             width: 100%; 
             height: 100%; 
-            background-color: rgba(0, 0, 0, 0.8); 
+            background-color: rgba(0, 0, 0, 0.85); 
             justify-content: center; 
             align-items: center;
         }
@@ -67,20 +67,27 @@
             width: 90%;
             max-width: 400px;
             box-sizing: border-box;
+            text-align: center;
         }
-        .modal-content h3 { margin-top: 0; text-align: center; color: #0b4b26; }
+        .modal-content h3 { margin-top: 0; color: #0b4b26; font-size: 24px; }
+        .modal-content p { color: #555; line-height: 1.5; margin-bottom: 25px; font-size: 16px; }
         .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .cancel-btn { background-color: #ccc; color: #333; }
+        .cancel-btn { background-color: #e0e0e0; color: #333; }
+        
+        /* Welcome Modal Specific Styling */
+        #welcome-modal .modal-content { border: 4px solid #a4ce60; }
+        #welcome-modal .action-btn { font-size: 16px; padding: 15px; line-height: 1.3; }
+
     </style>
 </head>
 <body>
 
     <h1 class="main-title">SCAVENGER HUNT</h1>
     <h2 class="sub-title">PlantCon Chicago 2026</h2>
-    <p class="instructions" id="main-instructions">Visit a local exhibitor booth and ask the exhibitor for their secret password to complete a bingo square!</p>
+    <p class="instructions" id="main-instructions">Tap a booth and hand your phone to the exhibitor for their secret password to collect your stamp!</p>
 
     <div id="loading-message">Loading your unique board...</div>
 
@@ -89,7 +96,7 @@
     <div id="win-section">
         <h2>🎉 BINGO! 🎉</h2>
         <p>You've collected all signatures!</p>
-        <button id="show-form-btn" class="action-btn" onclick="openModal()">Enter the Drawing</button>
+        <button id="show-form-btn" class="action-btn" onclick="openSubmissionModal()">Enter the Drawing</button>
     </div>
 
     <div id="ultimate-win-section">
@@ -97,9 +104,36 @@
         <p>You have successfully completed 4 full cards and visited almost every single exhibitor at the convention. Thank you for your amazing participation!</p>
     </div>
 
-    <a href="https://canva.link/i1o0bgs5czwh8nl" target="_blank" class="action-btn map-btn" style="width:20%">View Exhibitors Map</a>
+    <a href="https://canva.link/i1o0bgs5czwh8nl" target="_blank" class="action-btn map-btn">View Exhibitors Map</a>
 
-    <div id="submission-modal">
+    <button class="action-btn reset-btn" onclick="resetBoard()">Reset App (For Testing)</button>
+
+
+    <div id="welcome-modal" class="custom-modal">
+        <div class="modal-content">
+            <h3>Welcome to Booth Bingo!</h3>
+            <p>The Community Booth serves as the heart of our event. It is a dedicated space connecting attendees with local organizations, grassroots movements, and educational resources. By participating in this scavenger hunt, you are supporting and discovering the amazing local businesses that make our community thrive!</p>
+            <button class="action-btn" onclick="closeWelcomeModal()">take me to my local exhibitor scavenger hunt board!</button>
+        </div>
+    </div>
+
+
+    <div id="password-modal" class="custom-modal">
+        <div class="modal-content">
+            <h3 id="password-vendor-name">Vendor Name</h3>
+            <p style="margin-bottom: 15px; font-size: 14px;">Hand your phone to the exhibitor to enter their secret password.</p>
+            <div class="form-group">
+                <input type="text" id="vendor-password-input" placeholder="Enter password here..." autocomplete="off">
+            </div>
+            <div class="modal-buttons">
+                <button class="action-btn cancel-btn" onclick="closePasswordModal()">Cancel</button>
+                <button class="action-btn" onclick="submitPassword()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="submission-modal" class="custom-modal">
         <div class="modal-content">
             <h3>Complete Your Entry</h3>
             <div class="form-group">
@@ -119,7 +153,7 @@
                 <input type="tel" id="phone" placeholder="(555) 555-5555" required>
             </div>
             <div class="modal-buttons">
-                <button class="action-btn cancel-btn" onclick="closeModal()">Cancel</button>
+                <button class="action-btn cancel-btn" onclick="closeSubmissionModal()">Cancel</button>
                 <button id="submit-btn" class="action-btn" onclick="submitData()">Submit Entry</button>
             </div>
         </div>
@@ -130,15 +164,24 @@
 
         let masterExhibitorList = [];
         let boardData = [];
+        let activeSquareIndex = null; // Tracks which booth is currently being stamped
         
         const boardElement = document.getElementById('bingo-board');
         const winSection = document.getElementById('win-section');
         const ultimateWinSection = document.getElementById('ultimate-win-section');
         const loadingMessage = document.getElementById('loading-message');
         const instructions = document.getElementById('main-instructions');
-        const modal = document.getElementById('submission-modal');
+        
+        const welcomeModal = document.getElementById('welcome-modal');
+        const passwordModal = document.getElementById('password-modal');
+        const submissionModal = document.getElementById('submission-modal');
 
         async function initializeApp() {
+            // Display welcome modal if it's their first time loading the app
+            if (!localStorage.getItem('hasSeenWelcome')) {
+                welcomeModal.style.display = 'flex';
+            }
+
             const savedData = localStorage.getItem('bingoBoardState');
             
             if (savedData) {
@@ -170,6 +213,12 @@
             }
         }
 
+        // Welcome Modal Function
+        function closeWelcomeModal() {
+            localStorage.setItem('hasSeenWelcome', 'true');
+            welcomeModal.style.display = 'none';
+        }
+
         function showBoard() {
             loadingMessage.style.display = 'none';
             boardElement.style.display = 'grid';
@@ -193,11 +242,11 @@
             
             const newBoard = selected8.map(vendor => ({
                 name: vendor.name,
-                pin: vendor.pin,
+                password: vendor.pin, // Your Google Script still passes this as 'pin', mapping it to 'password' here
                 isStamped: false
             }));
 
-            newBoard.splice(4, 0, { name: "LOCAL COMMUNITY BOOTH", pin: null, isStamped: true });
+            newBoard.splice(4, 0, { name: "LOCAL COMMUNITY BOOTH", password: null, isStamped: true });
             return newBoard;
         }
 
@@ -211,23 +260,48 @@
                 div.innerText = square.name;
                 
                 if (square.isStamped) { div.classList.add('stamped'); } 
-                else { div.onclick = () => handleSquareClick(index); }
+                else { div.onclick = () => openPasswordModal(index); }
                 
                 boardElement.appendChild(div);
             });
             checkWinCondition();
         }
 
-        function handleSquareClick(index) {
-            const square = boardData[index];
-            let enteredPin = prompt(`Please enter the password for ${square.name}:`);
+        // NEW: Password Modal Functions
+        function openPasswordModal(index) {
+            activeSquareIndex = index;
+            document.getElementById('password-vendor-name').innerText = boardData[index].name;
+            document.getElementById('vendor-password-input').value = ''; // Clear previous input
+            passwordModal.style.display = 'flex';
             
-            if (enteredPin === square.pin) {
-                boardData[index].isStamped = true;
+            // Auto-focus the input field for convenience
+            setTimeout(() => { document.getElementById('vendor-password-input').focus(); }, 100);
+        }
+
+        function closePasswordModal() {
+            passwordModal.style.display = 'none';
+            activeSquareIndex = null;
+        }
+
+        function submitPassword() {
+            if (activeSquareIndex === null) return;
+            
+            const square = boardData[activeSquareIndex];
+            const inputField = document.getElementById('vendor-password-input');
+            
+            // Sanitize both inputs: trim whitespace and convert to lowercase for case-insensitivity
+            const enteredPassword = inputField.value.trim().toLowerCase();
+            const correctPassword = String(square.password).trim().toLowerCase();
+            
+            if (enteredPassword === correctPassword) {
+                boardData[activeSquareIndex].isStamped = true;
                 saveBoardData(); 
                 renderBoard(); 
-            } else if (enteredPin !== null) {
-                alert("Incorrect PIN. Please try again.");
+                closePasswordModal();
+            } else {
+                alert("Incorrect password. Please try again.");
+                inputField.value = ''; // Clear the wrong attempt
+                inputField.focus();
             }
         }
 
@@ -240,27 +314,21 @@
             if(confirm("Are you sure you want to completely clear your history? This will start you over from scratch.")) {
                 localStorage.removeItem('bingoBoardState');
                 localStorage.removeItem('visitedVendors');
+                localStorage.removeItem('hasSeenWelcome'); // Resets the welcome message too
                 location.reload(); 
             }
         }
 
-        // NEW: Modal control functions
-        function openModal() {
-            modal.style.display = 'flex';
-        }
+        // Submission Modal Functions
+        function openSubmissionModal() { submissionModal.style.display = 'flex'; }
+        function closeSubmissionModal() { submissionModal.style.display = 'none'; }
 
-        function closeModal() {
-            modal.style.display = 'none';
-        }
-
-        // NEW: Updated submission function to grab all 4 fields
         async function submitData() {
             const fName = document.getElementById('fname').value.trim();
             const lName = document.getElementById('lname').value.trim();
             const email = document.getElementById('email').value.trim();
             const phone = document.getElementById('phone').value.trim();
 
-            // Basic validation to ensure they filled it out
             if (!fName || !lName || !email || !phone) {
                 alert("Please fill out all fields before submitting.");
                 return;
@@ -308,6 +376,14 @@
                 btn.disabled = false;
             }
         }
+
+        // Listen for "Enter" key on the password input to trigger submission automatically
+        document.getElementById("vendor-password-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                submitPassword();
+            }
+        });
 
         initializeApp();
     </script>
