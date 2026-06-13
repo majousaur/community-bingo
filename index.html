@@ -49,6 +49,25 @@
             text-align: center; 
             font-size: 22px;
         }
+        /* Toggle Header Styles */
+        .instructions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding-bottom: 2px;
+        }
+        
+        #instructions-toggle-icon {
+            color: #a4ce60;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* This hides the content when the 'collapsed' class is active */
+        .instructions-container.collapsed #instructions-content {
+            display: none;
+        }
         .instructions-container h4 { 
             color: white; 
             margin: 15px 0 10px 0; 
@@ -212,15 +231,23 @@
     <h1 class="main-title">SCAVENGER HUNT</h1>
     <h2 class="sub-title">PlantCon Chicago 2026</h2>
     <div id="main-instructions" class="instructions-container">
-        <h3>How to Play:</h3>
-        <p>Visit the local exhibitor booths on your board and ask them for their secret password to complete that square. Complete your entire board to submit a raffle entry!</p>
-        <h4>The Details:</h4>
-        <ul>
-            <li>🏆 <strong>Prize Drawings:</strong> Every hour starting at 11:30 AM.</li>
-            <li>🎟️ <strong>Entries:</strong> You can submit up to 4 entries per PlantCon!</li>
-            <li>📱 <strong>Winners:</strong> We will text you if you win!</li>
-            <li>🔄 <strong>Reset:</strong> The raffle resets at the end of each day.</li>
-        </ul>
+        <!-- New clickable header -->
+        <div class="instructions-header" onclick="toggleInstructions()">
+            <h3 style="margin: 0;">How to Play</h3>
+            <span id="instructions-toggle-icon">▼</span>
+        </div>
+        
+        <!-- The content wrapped in a hideable div -->
+        <div id="instructions-content">
+            <p style="margin-top: 15px;">Visit the local exhibitor booths on your board and ask them for their secret password to complete that square. Complete your entire board to submit your name into a drawing to win prizes!</p>
+            <h4>The Details:</h4>
+            <ul>
+                <li>🏆 <strong>Drawings:</strong> Every hour starting at 11:30 AM.</li>
+                <li>🎟️ <strong>Entries:</strong> You can submit up to 4 times per event!</li>
+                <li>📱 <strong>Winners:</strong> We will text you if you win!</li>
+                <li>🔄 <strong>Reset:</strong> The raffle resets at the end of each day.</li>
+            </ul>
+        </div>
     </div>
     <div id="loading-message">Loading your unique board...</div>
 
@@ -310,7 +337,21 @@ In 2020, we organized local meet-ups within our Facebook group to trade and sell
         const welcomeModal = document.getElementById('welcome-modal');
         const passwordModal = document.getElementById('password-modal');
         const submissionModal = document.getElementById('submission-modal');
-
+        // Toggles the instructions open and closed
+        function toggleInstructions() {
+            const container = document.getElementById('main-instructions');
+            const icon = document.getElementById('instructions-toggle-icon');
+            
+            // Add or remove the 'collapsed' class
+            container.classList.toggle('collapsed');
+            
+            // Flip the arrow icon based on its state
+            if (container.classList.contains('collapsed')) {
+                icon.innerText = '▶'; 
+            } else {
+                icon.innerText = '▼'; 
+            }
+        }
         async function initializeApp() {
             // Display welcome modal if it's their first time loading the app
             if (!localStorage.getItem('hasSeenWelcome')) {
