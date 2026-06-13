@@ -41,30 +41,30 @@
             text-align: left; 
             box-sizing: border-box;
         }
-        .instructions-container h3 { 
-            color: #a4ce60; 
-            margin-top: 0; 
-            margin-bottom: 10px; 
-            font-family: 'More Sugar', cursive, sans-serif;
-            text-align: center; 
-            font-size: 22px;
-        }
         /* Toggle Header Styles */
         .instructions-header {
+            position: relative; /* Anchors the absolute icon inside this specific container */
             display: flex;
-            justify-content: center; /* Centers the heading */
+            justify-content: center;
             align-items: center;
-            position: relative; /* Acts as an anchor for the arrow */
             cursor: pointer;
             padding-bottom: 2px;
             width: 100%;
         }
         
+        /* Adds a safe zone of padding so the text never touches the arrow on small screens */
+        .instructions-header h3 {
+            padding: 0 25px; 
+            margin: 0;
+        }
+
         #instructions-toggle-icon {
-            position: absolute; /* Detaches the arrow from the text */
-            right: 0; /* Pins it to the far right edge */
+            position: absolute;
+            right: 5px; /* Pins it cleanly to the right edge */
+            top: 50%;
+            transform: translateY(-50%); /* Keeps it perfectly vertically centered */
             color: #a4ce60;
-            font-size: 16px;
+            font-size: 18px; /* Slightly larger for easier tapping */
             font-weight: bold;
         }
 
