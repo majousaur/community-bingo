@@ -170,6 +170,20 @@
             margin-bottom: 15px;
             border-radius: 8px; /* Optional: rounds the corners slightly */
         }
+        /* Floating Entries Badge */
+        #entries-badge {
+            position: absolute; /* absolute keeps it at the very top of the page */
+            top: 15px;
+            right: 15px;
+            background-color: #a4ce60;
+            color: #0b4b26;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 900;
+        }
         @font-face {
             font-family: 'More Sugar';
             src: url('MoreSugar.ttf') format('truetype');
@@ -232,6 +246,7 @@
     </style>
 </head>
 <body>
+    <div id="entries-badge">🎟️ Entries Left: <span id="entries-count">4</span>/4</div>
     <img src="logo.png" alt="PlantCon Logo" class="header-image">
     <h1 class="main-title">SCAVENGER HUNT</h1>
     <h2 class="sub-title">PlantCon Chicago 2026</h2>
@@ -258,10 +273,15 @@
 
     <div id="bingo-board"></div>
 
-    <div id="win-section">
-        <h2>🎉 WOOHOO! 🎉</h2>
-        <p>You've collected all the secret passwords on your board!</p>
-        <button id="show-form-btn" class="action-btn" onclick="openSubmissionModal()">Enter the Raffle</button>
+   <div id="win-modal" class="custom-modal">
+        <div class="modal-content">
+            <h2>🎉 WOOHOO! 🎉</h2>
+            <p>You've collected all the secret passwords from the local exhibitors on your board!</p>
+            <p style="color: #6a902b; font-weight: bold; margin-bottom: 20px;">
+                Raffle Entries Remaining: <span id="modal-entries-count">4</span>/4
+            </p>
+            <button class="action-btn" onclick="openSubmissionModalFromWin()">Enter the Drawing</button>
+        </div>
     </div>
 
     <div id="ultimate-win-section">
@@ -341,7 +361,6 @@ In 2020, we organized local meet-ups within our Facebook group to trade and sell
         let activeSquareIndex = null; // Tracks which booth is currently being stamped
         
         const boardElement = document.getElementById('bingo-board');
-        const winSection = document.getElementById('win-section');
         const ultimateWinSection = document.getElementById('ultimate-win-section');
         const loadingMessage = document.getElementById('loading-message');
         const instructions = document.getElementById('main-instructions');
@@ -363,6 +382,15 @@ In 2020, we organized local meet-ups within our Facebook group to trade and sell
             } else {
                 icon.innerText = '-'; 
             }
+        }
+        function updateEntriesUI() {
+            let history = JSON.parse(localStorage.getItem('visitedVendors') || '[]');
+            // Every 8 vendors equals 1 completed board. Max is 4.
+            let completedBoards = Math.floor(history.length / 8);
+            let entriesLeft = Math.max(0, 4 - completedBoards);
+            
+            document.getElementById('entries-count').innerText = entriesLeft;
+            document.getElementById('modal-entries-count').innerText = entriesLeft;
         }
         async function initializeApp() {
             // Display welcome modal if it's their first time loading the app
@@ -443,6 +471,7 @@ In 2020, we organized local meet-ups within our Facebook group to trade and sell
         function saveBoardData() { localStorage.setItem('bingoBoardState', JSON.stringify(boardData)); }
 
         function renderBoard() {
+            updateEntriesUI();
             boardElement.innerHTML = ''; 
             boardData.forEach((square, index) => {
                 const div = document.createElement('div');
@@ -510,7 +539,11 @@ In 2020, we organized local meet-ups within our Facebook group to trade and sell
 
         function checkWinCondition() {
             const allStamped = boardData.every(square => square.isStamped === true);
-            winSection.style.display = allStamped ? 'block' : 'none';
+            if (allStamped) {
+                document.getElementById('win-modal').style.display = 'flex';
+            } else {
+                document.getElementById('win-modal').style.display = 'none';
+            }
         }
 
         function resetBoard() {
@@ -523,8 +556,19 @@ In 2020, we organized local meet-ups within our Facebook group to trade and sell
         }
 
         // Submission Modal Functions
-        function openSubmissionModal() { submissionModal.style.display = 'flex'; }
-        function closeSubmissionModal() { submissionModal.style.display = 'none'; }
+        function openSubmissionModalFromWin() {
+            document.getElementById('win-modal').style.display = 'none';
+            submissionModal.style.display = 'flex';
+        }
+
+        function openSubmissionModal() { 
+            submissionModal.style.display = 'flex'; 
+        }
+        
+        function closeSubmissionModal() { 
+            submissionModal.style.display = 'none'; 
+            checkWinCondition(); // If the board is done, this brings the Win Modal back!
+        }
 
         async function submitData() {
             const fName = document.getElementById('fname').value.trim();
