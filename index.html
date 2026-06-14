@@ -222,22 +222,45 @@
             justify-content: center; 
             align-items: center;
         }
-        .modal-content {
-            background-color: #f4f4f9;
-            color: #333;
-            padding: 25px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 400px;
-            box-sizing: border-box;
-            text-align: center;
+        .modal-content { 
+            background-color: #f4f4f9; 
+            color: #333; 
+            padding: 25px; 
+            border-radius: 12px; 
+            width: 90%; 
+            max-width: 400px; 
+            box-sizing: border-box; 
+            text-align: center; 
+            /* This forces everything inside the modal to stack vertically */
+            display: flex;
+            flex-direction: column;
         }
         .modal-content h3 { margin-top: 0; color: #0b4b26; font-size: 24px; }
         .modal-content p { color: #555; line-height: 1.5; margin-bottom: 25px; font-size: 16px; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
-        .form-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .form-group { 
+            /* This strictly forces the label to sit on top of the input box */
+            display: flex; 
+            flex-direction: column; 
+            margin-bottom: 15px; 
+            text-align: left; 
+            width: 100%;
+        }
+
+        .form-group label { 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+            font-size: 14px; 
+        }
+
+        .form-group input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+            font-family: inherit;
+        }        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
         .cancel-btn { background-color: #e0e0e0; color: #333; }
         
         /* Welcome Modal Specific Styling */
