@@ -633,7 +633,17 @@ In 2020, we organized local meet-ups within our Facebook group to trade and sell
                 submitPassword();
             }
         });
-
+        // Auto-format phone number field as (XXX) XXX-XXXX
+        document.getElementById('phone').addEventListener('input', function (e) {
+            // Strip all non-numeric characters
+            var cleaned = e.target.value.replace(/\D/g, '');
+            
+            // Group the numbers into 3, 3, and 4 digits
+            var match = cleaned.match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
+            
+            // Apply the formatting as they type
+            e.target.value = !match[2] ? match[1] : '(' + match[1] + ') ' + match[2] + (match[3] ? '-' + match[3] : '');
+        });
         initializeApp();
     </script>
 </body>
